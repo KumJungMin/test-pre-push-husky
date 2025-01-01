@@ -35,7 +35,7 @@ function getCommittedFiles(): string[] {
     const input = fs.readFileSync(0, 'utf-8');
     const lines = input.trim().split('\n');
 
-    let pushedFiles: string[] = [];
+    let committedFiles: string[] = [];
 
     lines.forEach(line => {
       const [_, localSha, __, remoteSha] = line.split(' ');
@@ -44,15 +44,15 @@ function getCommittedFiles(): string[] {
       if (isLocalBranch) {
         const listCommand = `git ls-tree -r --name-only ${localSha}`;
         const output = execSync(listCommand, { encoding: 'utf-8' });
-        pushedFiles = pushedFiles.concat(output.split('\n').filter(file => file.trim() !== ''));
+        committedFiles = committedFiles.concat(output.split('\n').filter(file => file.trim() !== ''));
       } else {
         const diffCommand = `git diff --name-only ${remoteSha} ${localSha}`;
         const output = execSync(diffCommand, { encoding: 'utf-8' });
-        pushedFiles = pushedFiles.concat(output.split('\n').filter(file => file.trim() !== ''));
+        committedFiles = committedFiles.concat(output.split('\n').filter(file => file.trim() !== ''));
       }
     });
 
-    const uniqueFiles = Array.from(new Set(pushedFiles))
+    const uniqueFiles = Array.from(new Set(committedFiles))
     return uniqueFiles;
   } catch (error) {
     console.error('커밋한 파일을 가져오는 중 오류가 발생했습니다.');
