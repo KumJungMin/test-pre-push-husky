@@ -1,0 +1,9 @@
+{
+	"scripts": {
+    "prepare": "husky install"
+  },
+	"devDependencies": {
+		"husky": "^9.1.7",
+		"vitest": "^2.1.8"
+	}
+}
