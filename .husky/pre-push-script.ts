@@ -12,7 +12,7 @@ const TEST_PREFIX = `${SRC_PREFIX}tests/`;
 const TEST_RUN_SCRIPT = 'pnpm vitest run';
 
 (function () {
-  const files = getPushedFiles();
+  const files = getCommittedFiles();
 
   if (files.length === 0) {
     console.log('수정된 파일이 없습니다. 푸시를 계속합니다.');
@@ -30,7 +30,7 @@ const TEST_RUN_SCRIPT = 'pnpm vitest run';
   process.exit(0);
 })();
 
-function getPushedFiles(): string[] {
+function getCommittedFiles(): string[] {
   try {
     const input = fs.readFileSync(0, 'utf-8');
     const lines = input.trim().split('\n');
@@ -55,7 +55,7 @@ function getPushedFiles(): string[] {
     const uniqueFiles = Array.from(new Set(pushedFiles))
     return uniqueFiles;
   } catch (error) {
-    console.error('푸시된 파일을 가져오는 중 오류가 발생했습니다.');
+    console.error('커밋한 파일을 가져오는 중 오류가 발생했습니다.');
     process.exit(1);
   }
 }
