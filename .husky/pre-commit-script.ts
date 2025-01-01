@@ -12,7 +12,7 @@ const TEST_PREFIX = `${SRC_PREFIX}tests/`;
 const TEST_RUN_SCRIPT = 'pnpm vitest run';
 
 (function () {
-  const files = getPushedFiles();
+  const files = getStagedFiles();
 
   if (files.length === 0) {
     console.log('수정된 파일이 없습니다. 푸시를 계속합니다.');
@@ -30,32 +30,18 @@ const TEST_RUN_SCRIPT = 'pnpm vitest run';
   process.exit(0);
 })();
 
-function getPushedFiles(): string[] {
+/**
+ * 스테이징된 파일을 가져옵니다.
+ * @returns {string[]} 스테이징된 파일 목록
+ */
+function getStagedFiles(): string[] {
   try {
-    const input = fs.readFileSync(0, 'utf-8');
-    const lines = input.trim().split('\n');
-
-    let pushedFiles: string[] = [];
-
-    lines.forEach(line => {
-      const [_, localSha, __, remoteSha] = line.split(' ');
-
-      const isLocalBranch = remoteSha === '0000000000000000000000000000000000000000';
-      if (isLocalBranch) {
-        const listCommand = `git ls-tree -r --name-only ${localSha}`;
-        const output = execSync(listCommand, { encoding: 'utf-8' });
-        pushedFiles = pushedFiles.concat(output.split('\n').filter(file => file.trim() !== ''));
-      } else {
-        const diffCommand = `git diff --name-only ${remoteSha} ${localSha}`;
-        const output = execSync(diffCommand, { encoding: 'utf-8' });
-        pushedFiles = pushedFiles.concat(output.split('\n').filter(file => file.trim() !== ''));
-      }
+    const output = execSync('git diff --cached --name-only --diff-filter=ACM', {
+      encoding: 'utf-8',
     });
-
-    const uniqueFiles = Array.from(new Set(pushedFiles))
-    return uniqueFiles;
+    return output.split('\n').map(file => file.trim());
   } catch (error) {
-    console.error('푸시된 파일을 가져오는 중 오류가 발생했습니다.');
+    console.error('수정된 파일을 가져오는 중 오류가 발생했습니다.');
     process.exit(1);
   }
 }
