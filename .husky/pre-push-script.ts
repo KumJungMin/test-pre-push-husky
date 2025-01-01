@@ -2,6 +2,15 @@ import { execSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 
+/** 
+ * SRC_PREFIX: 소스 파일이 project/src/ 폴더에 있다면 'project/src/'로 설정
+ * TEST_PREFIX: 테스트 파일은 SRC_PREFIX를 제외한 경로에 'tests/' 폴더를 추가한 경로로 설정
+ * TEST_RUN_SCRIPT: 테스트 실행 스크립트
+*/
+const SRC_PREFIX = 'project/';
+const TEST_PREFIX = `${SRC_PREFIX}tests/`;
+const TEST_RUN_SCRIPT = 'pnpm vitest run';
+
 (function () {
   const files = getStagedFiles();
 
@@ -35,41 +44,6 @@ function getStagedFiles(): string[] {
 }
 
 /**
- * 소스 파일 경로를 테스트 파일 경로로 변환합니다.
- * 예: project/folder1/folder2/A.vue -> project/tests/folder1/folder2/A.spec.js
- * @param {string} file 소스 파일 경로
- * @returns {string | null} 대응하는 테스트 파일 경로 또는 null
- */
-function mapToTestFile(file: string): string | null {
-  const srcPrefix = 'project/'; // 소스 파일의 공통 경로가 있다면 수정
-  const testsPrefix = 'project/tests/'; // 테스트 파일의 공통 경로
-
-  if (!file.startsWith(srcPrefix)) {
-    return null;
-  }
-
-  const relativePath = file.slice(srcPrefix.length); // project/ 이후 경로
-  const dir = path.dirname(relativePath);
-  const ext = path.extname(relativePath);
-  const baseName = path.basename(relativePath, ext);
-
-  const testPatterns = [
-    `${baseName}.spec.ts`,
-    `${baseName}.spec.js`,
-    `${baseName}.test.ts`,
-    `${baseName}.test.js`,
-  ];
-
-  for (const pattern of testPatterns) {
-    const testFilePath = path.join(testsPrefix, dir, pattern);
-    if (fs.existsSync(testFilePath)) {
-      return testFilePath;
-    }
-  }
-  return null;
-}
-
-/**
  * 테스트 파일이 존재하는지 확인하고, 존재하면 테스트를 실행합니다.
  * @param {string[]} files 소스 파일 목록
  * @returns {boolean} 테스트 실패 여부
@@ -84,7 +58,7 @@ function runTests(files: string[]): boolean {
       if (fs.existsSync(testFile)) {
         console.log(`테스트 실행: ${testFile}`);
         try {
-          execSync(`pnpm vitest run ${testFile}`, { stdio: 'inherit' });
+          execSync(`${TEST_RUN_SCRIPT} ${testFile}`, { stdio: 'inherit' });
         } catch (error) {
           console.error(`테스트 실패: ${testFile}`);
           hasFailure = true;
@@ -101,3 +75,31 @@ function runTests(files: string[]): boolean {
   return hasFailure;
 }
 
+/**
+ * 소스 파일 경로를 테스트 파일 경로로 변환합니다.
+ * 예: project/folder1/folder2/A.vue -> project/tests/folder1/folder2/A.spec.js
+ * @param {string} file 소스 파일 경로
+ * @returns {string | null} 대응하는 테스트 파일 경로 또는 null
+ */
+function mapToTestFile(file: string): string | null {
+  const testExtensions = ['.spec.js', '.test.js', '.spec.ts', '.test.ts'];
+  const isTestFile = testExtensions.some(ext => file.endsWith(ext));
+
+  if (isTestFile) return file;
+  if (!file.startsWith(SRC_PREFIX)) return null;
+  
+  const relativePath = file.slice(SRC_PREFIX.length);
+  const dir = path.dirname(relativePath);
+  const ext = path.extname(relativePath);
+  const baseName = path.basename(relativePath, ext);
+
+  const testPatterns = testExtensions.map(ext => `${baseName}${ext}`);
+
+  for (const pattern of testPatterns) {
+    const testFilePath = path.join(TEST_PREFIX, dir, pattern);
+    if (fs.existsSync(testFilePath)) {
+      return testFilePath;
+    }
+  }
+  return null;
+}
