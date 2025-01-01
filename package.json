@@ -1,6 +1,6 @@
 {
 	"scripts": {
-		"prepare": "husky install",
+		"prepare": "husky",
 		"test": "vitest",
 		"test:ci": "vitest run",
 		"pre-push": "ts-node .husky/pre-push-script.ts"
@@ -8,6 +8,7 @@
 	"devDependencies": {
 		"@types/node": "^22.10.3",
 		"husky": "^9.1.7",
+		"jsdom": "^25.0.1",
 		"ts-node": "^10.9.2",
 		"typescript": "^5.7.2",
 		"vitest": "^2.1.8"
