@@ -43,9 +43,6 @@ function main() {
   // 수정된 파일 목록 가져오기 (develop...HEAD)
   const diffFiles = getModifiedFiles();
 
-  // 예: project폴더의 파일만 필터링
-  const filteredDiffFiles = diffFiles.filter((file) => file.startsWith('project/'));
-
   const resultLines: string[] = [];
   resultLines.push('## Coverage Diff Result');
   resultLines.push(`비교 기준: develop vs. 현재 브랜치\n`);
@@ -53,7 +50,7 @@ function main() {
   let coverageDecreased = false;
 
   // 파일별로 라인 커버리지를 비교
-  filteredDiffFiles.forEach((file) => {
+  diffFiles.forEach((file) => {
     const baseEntryKey = Object.keys(baseCoverage.files).find((k) => k.endsWith(file));
     const currentEntryKey = Object.keys(currentCoverage.files).find((k) => k.endsWith(file));
 
