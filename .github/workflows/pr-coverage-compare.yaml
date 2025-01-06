@@ -1,0 +1,71 @@
+name: PR Coverage Compare
+
+on:
+  pull_request:
+    branches:
+      - develop  # base가 develop인 PR에 대해 실행
+
+jobs:
+  test-and-compare:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout current branch
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # 전체 히스토리 가져오기
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: pnpm install
+
+      # 1. `develop` 브랜치의 커버리지 생성
+      - name: Checkout develop branch
+        run: |
+          git fetch origin develop
+          git checkout origin/develop -b develop
+
+      - name: Run tests on develop
+        run: npx vitest --coverage
+
+      - name: Save develop coverage
+        run: |
+          mkdir -p coverage-develop
+          cp coverage/coverage-summary.json coverage-develop/coverage-summary.json
+
+      # 2. 다시 `current` 브랜치로 돌아와 테스트 실행
+      - name: Checkout current branch again
+        run: git checkout ${{ github.head_ref }}
+
+      - name: Run tests on current
+        run: npx vitest --coverage
+
+      - name: Save current coverage
+        run: |
+          mkdir -p coverage-current
+          cp coverage/coverage-summary.json coverage-current/coverage-summary.json
+
+      # 3. Compare coverage
+      - name: Install ts-node and TypeScript
+        run: pnpm add -D ts-node typescript
+
+      - name: Compare coverage
+        run: npx ts-node scripts/compare-coverage.ts
+
+      # 4. Comment coverage result to PR
+      - name: Comment coverage result to PR
+        if: always()  # 항상 실행
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const result = fs.readFileSync('coverage-diff-result.txt', 'utf-8');
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: result,
+            });
