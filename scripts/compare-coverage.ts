@@ -49,8 +49,10 @@ function main() {
 
   let coverageDecreased = false;
 
+  const filteredDiffFiles = diffFiles?.filter((file) => file.startsWith('project/'));
+
   // 파일별로 라인 커버리지를 비교
-  diffFiles.forEach((file) => {
+  filteredDiffFiles?.forEach((file) => {
     const baseEntryKey = Object.keys(baseCoverage.files).find((k) => k.endsWith(file));
     const currentEntryKey = Object.keys(currentCoverage.files).find((k) => k.endsWith(file));
 
@@ -89,16 +91,18 @@ function main() {
  */
 function getModifiedFiles(): string[] {
   try {
-    const output = execSync('git diff --name-only origin/develop...HEAD')
+    const output = execSync('git diff --name-only develop...HEAD')
       .toString()
       .split('\n')
       .map((f) => f.trim())
       .filter(Boolean);
+    console.log('Modified files from git diff:', output);
     return output;
   } catch (error) {
     console.error('Failed to get modified files:', error);
     return [];
   }
-}
+};
 
 main();
+
