@@ -17,8 +17,7 @@ interface CoverageFileData {
 }
 
 interface CoverageSummary {
-  total: CoverageFileData; 
-  files: Record<string, CoverageFileData>;
+  [key: string]: CoverageFileData
 }
 
 function main() {
@@ -56,25 +55,26 @@ function main() {
   let coverageDecreased = false;
 
   if (filteredDiffFiles.length > 0) {
-    filteredDiffFiles.forEach((file) => {
-      const baseEntryKey = Object.keys(baseCoverage.files).find((k) => k.endsWith(file));
-    const currentEntryKey = Object.keys(currentCoverage.files).find((k) => k.endsWith(file));
 
-    const baseFileCov = baseEntryKey ? baseCoverage.files[baseEntryKey] : null;
-    const currentFileCoverage = currentEntryKey ? currentCoverage.files[currentEntryKey] : null;
+    for(const file of filteredDiffFiles) {
+      const baseEntryKey = Object.keys(baseCoverage).find((k) => k.endsWith(file));
+      const currentEntryKey = Object.keys(currentCoverage).find((k) => k.endsWith(file));
 
-    const baseLineCoveragePercentage = baseFileCov ? baseFileCov.lines.pct : 0;
-    const currentLineCoveragePercentage = currentFileCoverage ? currentFileCoverage.lines.pct : 0;
+      const baseFileCov = baseEntryKey ? baseCoverage[baseEntryKey] : null;
+      const currentFileCoverage = currentEntryKey ? currentCoverage[currentEntryKey] : null;
 
-    let line = `- **${file}**: develop=${baseLineCoveragePercentage}%, current=${currentLineCoveragePercentage}%`;
+      const baseLineCoveragePercentage = baseFileCov ? baseFileCov.lines.pct : 0;
+      const currentLineCoveragePercentage = currentFileCoverage ? currentFileCoverage.lines.pct : 0;
 
-    if (currentLineCoveragePercentage < baseLineCoveragePercentage) {
-      coverageDecreased = true;
-      line += `  ⚠️  커버리지 하락`;
+      let line = `- **${file}**: develop=${baseLineCoveragePercentage}%, current=${currentLineCoveragePercentage}%`;
+
+      if (currentLineCoveragePercentage < baseLineCoveragePercentage) {
+        coverageDecreased = true;
+        line += `  ⚠️  커버리지 하락`;
+      }
+
+      resultLines.push(line);
     }
-
-    resultLines.push(line);
-    });
   } else {
     console.log('No modified files within the target folder.');
   }
