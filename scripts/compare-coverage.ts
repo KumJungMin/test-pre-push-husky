@@ -43,17 +43,21 @@ function main() {
   // 수정된 파일 목록 가져오기 (develop...HEAD)
   const diffFiles = getModifiedFiles();
 
+  const targetFolder = 'project/';
+  const filteredDiffFiles = diffFiles.filter((file) => file.startsWith(targetFolder));
+
+  console.log('Filtered modified files:', filteredDiffFiles);
+
+  // 5) 결과를 담을 배열
   const resultLines: string[] = [];
   resultLines.push('## Coverage Diff Result');
   resultLines.push(`비교 기준: develop vs. 현재 브랜치\n`);
 
   let coverageDecreased = false;
 
-  const filteredDiffFiles = diffFiles?.filter((file) => file.startsWith('project/'));
-
-  // 파일별로 라인 커버리지를 비교
-  filteredDiffFiles?.forEach((file) => {
-    const baseEntryKey = Object.keys(baseCoverage.files).find((k) => k.endsWith(file));
+  if (filteredDiffFiles.length > 0) {
+    filteredDiffFiles.forEach((file) => {
+      const baseEntryKey = Object.keys(baseCoverage.files).find((k) => k.endsWith(file));
     const currentEntryKey = Object.keys(currentCoverage.files).find((k) => k.endsWith(file));
 
     const baseFileCov = baseEntryKey ? baseCoverage.files[baseEntryKey] : null;
@@ -70,7 +74,10 @@ function main() {
     }
 
     resultLines.push(line);
-  });
+    });
+  } else {
+    console.log('No modified files within the target folder.');
+  }
 
   if (!coverageDecreased) {
     resultLines.push(`\n✅ 수정된 파일의 커버리지가 하락하지 않았습니다. Good job!`);
@@ -102,7 +109,7 @@ function getModifiedFiles(): string[] {
     console.error('Failed to get modified files:', error);
     return [];
   }
-};
+}
 
 main();
 
