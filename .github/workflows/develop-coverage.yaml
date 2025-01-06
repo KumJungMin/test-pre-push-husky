@@ -3,7 +3,7 @@ name: Develop Coverage
 on:
   push:
     branches:
-      - develop  # develop에 푸시될 때만 동작
+      - develop 
 
 jobs:
   coverage:
@@ -20,7 +20,7 @@ jobs:
           node-version: 18
 
       - name: Install dependencies
-        run: pnpm install
+        run: npm install
 
       - name: Run tests with coverage
         run: npx vitest --coverage --watch=false
