@@ -50,6 +50,8 @@ async function main() {
   console.log('pushed files:', pushedFiles);
   const modifiedSourceFiles = pushedFiles.map(mapToSourceFile).filter((f): f is string => f !== null);
 
+  console.log('Modified source files:', modifiedSourceFiles);
+
   const resultLines: string[] = [];
   resultLines.push('## Coverage Diff Result');
   resultLines.push(`비교 기준: develop branch vs. current branch\n`);
@@ -100,6 +102,9 @@ function generateCoverageDiffReport({
 
     const baseFileCoverage = baseEntryKey ? baseCoverage[baseEntryKey] : null;
     const currentFileCoverage = currentEntryKey ? currentCoverage[currentEntryKey] : null;
+
+    console.log('base:', baseFileCoverage);
+    console.log('current:', currentFileCoverage);
 
     for (const metric of COVERAGE_METRICS) {
       const matrix = compareMetricForFile({ file, metric, baseFileCoverage, currentFileCoverage });

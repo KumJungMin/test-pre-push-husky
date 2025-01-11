@@ -1,34 +1,25 @@
 import * as fs from 'fs';
 import { execSync, exec } from 'child_process';
 
-export function getPushedFiles(): Promise<string[]> {
-  const baseRef = process.env.GITHUB_BASE_REF;
-  const currentSha = process.env.GITHUB_SHA;
-  
-  if (!baseRef) {
-    console.error('GIT_BASE_REF is not set.');
-    process.exit(1);
-  }
-  if (!currentSha) {
-    console.error('GITHUB_SHA is not set.');
-    process.exit(1);
-  }
-  
+export function getChangedFiles(): Promise<string[]> {
+  const commitBefore = process.env.GITHUB_EVENT_BEFORE;
+  const commitAfter = process.env.GITHUB_SHA || process.env.GITHUB_EVENT_AFTER;
+
   return new Promise((resolve, reject) => {
-    const command = `git fetch origin ${baseRef} --depth=1 || true && git diff --name-only ${baseRef}..${currentSha}`;
+    const command = `git diff --name-only ${commitBefore} ${commitAfter}`;
     exec(command, (error, stdout, stderr) => {
       if (error) {
         console.error(`Error executing git diff: ${stderr}`);
         reject(error);
         return;
       }
-
-      const changedFiles = stdout.trim().split("\n");
+      const changedFiles = stdout.trim() ? stdout.trim().split("\n") : [];
+      console.log("Changed files:", changedFiles);
+      
       resolve(changedFiles);
     });
   });
 }
-
 
 
 export function getCommittedFiles(): string[] {
