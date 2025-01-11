@@ -20,7 +20,8 @@ interface CoverageSummary {
   [key: string]: CoverageFileData
 }
 
-const PROJECT_FOLDER = 'project/';
+const SRC_PREFIX = 'project/';
+const TEST_PREFIX = `${SRC_PREFIX}tests/`;
 
 let coverageDecreased = false;
 
@@ -46,10 +47,9 @@ function main() {
   // 수정된 파일 목록 가져오기 (develop...HEAD)
   const diffFiles = getModifiedFiles();
 
-  
-  const filteredDiffFiles = diffFiles.filter((file) => file.startsWith(PROJECT_FOLDER));
+  const modifiedSourceFiles = diffFiles.filter((file) => file.startsWith(SRC_PREFIX) && !file.startsWith(TEST_PREFIX));
 
-  console.log('Filtered modified files:', filteredDiffFiles);
+  console.log('Filtered modified files:', modifiedSourceFiles);
 
   // 5) 결과를 담을 배열
   const resultLines: string[] = [];
@@ -58,12 +58,9 @@ function main() {
 
   
 
-  if (filteredDiffFiles.length > 0) {
-    resultLines.push('파일 | develop 커버리지 | current 커버리지 | 비고');
-    resultLines.push('--- | --- | --- | ---');
-
+  if (modifiedSourceFiles.length > 0) {
     const result = generateCoverageDiffReport({
-      fileList: filteredDiffFiles,
+      fileList: modifiedSourceFiles,
       baseCoverage,
       currentCoverage,
     });
