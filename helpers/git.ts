@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import { execSync, exec } from 'child_process';
 
-export function getChangedFiles(): Promise<string[]> {
+export function getPushedFiles(): Promise<string[]> {
   const commitBefore = process.env.GITHUB_EVENT_BEFORE;
   const commitAfter = process.env.GITHUB_SHA || process.env.GITHUB_EVENT_AFTER;
 
