@@ -59,7 +59,7 @@ jobs:
         run: npm install -D ts-node typescript
 
       - name: Compare coverage
-        run: npx ts-node scripts/compare-coverage.ts
+        run: npx ts-node scripts/compare-change-file-coverage.ts
 
       # 4. Comment coverage result to PR
       - name: Comment coverage result to PR

@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { execSync } from 'child_process';
+import { getBranchDiffFiles } from '../helpers/git';
 
 interface CoverageDetails {
   total: number;
@@ -46,14 +46,12 @@ function main() {
   const baseCoverage = JSON.parse(baseCoverageContent) as CoverageSummary;
   const currentCoverage = JSON.parse(currentCoverageContent) as CoverageSummary;
 
-  // 수정된 파일 목록 가져오기 (develop...HEAD)
-  const diffFiles = getModifiedFiles();
+  const diffFiles = getBranchDiffFiles('develop');
 
   const modifiedSourceFiles = diffFiles.filter((file) => file.startsWith(SRC_PREFIX) && !file.startsWith(TEST_PREFIX));
 
   console.log('Filtered modified files:', modifiedSourceFiles);
 
-  // 5) 결과를 담을 배열
   const resultLines: string[] = [];
   resultLines.push('## Coverage Diff Result');
   resultLines.push(`비교 기준: develop branch vs. current branch\n`);
@@ -143,26 +141,6 @@ function compareMetricForFile({
     return '';
   }
   return `${file} | ${metric} | ${basePct}% | ${currentPct}% | ${note}`;
-}
-
-
-/**
- * Git 명령어를 통해 수정된 파일 목록을 가져옵니다.
- * @returns {string[]} 수정된 파일 목록
- */
-function getModifiedFiles(): string[] {
-  try {
-    const output = execSync('git diff --name-only develop...HEAD')
-      .toString()
-      .split('\n')
-      .map((f) => f.trim())
-      .filter(Boolean);
-    console.log('Modified files from git diff:', output);
-    return output;
-  } catch (error) {
-    console.error('Failed to get modified files:', error);
-    return [];
-  }
 }
 
 main();
