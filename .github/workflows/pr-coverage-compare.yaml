@@ -61,7 +61,8 @@ jobs:
       - name: Compare coverage
         run: npx ts-node scripts/compare-change-file-coverage.ts
         env:
-          GITHUB_BASE_REF: ${{ github.base_ref }}
+          GITHUB_EVENT_BEFORE: ${{ github.event.before }}
+          GITHUB_EVENT_AFTER: ${{ github.event.after }}
           GITHUB_SHA: ${{ github.sha }}
         
       # 4. Comment coverage result to PR
