@@ -22,6 +22,8 @@ interface CoverageSummary {
 
 const SRC_PREFIX = 'project/';
 const TEST_PREFIX = `${SRC_PREFIX}tests/`;
+const COVERAGE_METRICS: (keyof CoverageFileData)[] = ['lines', 'functions', 'branches', 'statements'];
+const SKIP_UNCHANGED_COVERAGE = true;
 
 let coverageDecreased = false;
 
@@ -64,7 +66,7 @@ function main() {
       baseCoverage,
       currentCoverage,
     });
-    resultLines.push(...result);
+    if (result.length > 0) resultLines.push(...result);
     
   } else {
     console.log('No modified files within the target folder.');
@@ -96,9 +98,6 @@ function generateCoverageDiffReport({
   const baseCoverageKeys = Object.keys(baseCoverage);
   const currentCoverageKeys = Object.keys(currentCoverage);
 
-  result.push('파일 | Metric | develop 커버리지 | current 커버리지 | 비고');
-  result.push('--- | --- | --- | --- | ---');
-
   for (const file of fileList) {
     const baseEntryKey = baseCoverageKeys.find((k) => k.endsWith(file));
     const currentEntryKey = currentCoverageKeys.find((k) => k.endsWith(file));
@@ -106,12 +105,17 @@ function generateCoverageDiffReport({
     const baseFileCoverage = baseEntryKey ? baseCoverage[baseEntryKey] : null;
     const currentFileCoverage = currentEntryKey ? currentCoverage[currentEntryKey] : null;
 
-    const metrics: (keyof CoverageFileData)[] = ['lines', 'functions', 'branches', 'statements'];
+    for (const metric of COVERAGE_METRICS) {
+      const matrix = compareMetricForFile({ file, metric, baseFileCoverage, currentFileCoverage });
 
-    for (const metric of metrics) {
-      result.push(compareMetricForFile({ file, metric, baseFileCoverage, currentFileCoverage }));
+      if (matrix) result.push(matrix);
     }
   };
+
+  if (result.length > 0) {
+    result.unshift('파일 | Metric | develop 커버리지 | current 커버리지 | 비고');
+    result.unshift('--- | --- | --- | --- | ---');
+  }
 
   return result;
 }
@@ -133,10 +137,11 @@ function compareMetricForFile({
   let note = '✅  유지';
 
   if (currentPct < basePct) {
-    coverageDecreased = true;
     note = '⚠️  하락';
+    coverageDecreased = true;
+  } else if (SKIP_UNCHANGED_COVERAGE) {
+    return '';
   }
-  
   return `${file} | ${metric} | ${basePct}% | ${currentPct}% | ${note}`;
 }
 
