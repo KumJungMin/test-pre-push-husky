@@ -47,6 +47,7 @@ function main() {
   const currentCoverage = JSON.parse(currentCoverageContent) as CoverageSummary;
 
   const committedFiles = getCommittedFiles();
+  console.log('Committed files:', committedFiles);
   const modifiedSourceFiles = committedFiles.map(mapToSourceFile).filter((f): f is string => f !== null);
 
   const resultLines: string[] = [];
