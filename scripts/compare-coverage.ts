@@ -113,8 +113,8 @@ function generateCoverageDiffReport({
   };
 
   if (result.length > 0) {
-    result.unshift('파일 | Metric | develop 커버리지 | current 커버리지 | 비고');
     result.unshift('--- | --- | --- | --- | ---');
+    result.unshift('파일 | Metric | develop 커버리지 | current 커버리지 | 비고');
   }
 
   return result;
