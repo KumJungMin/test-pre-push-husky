@@ -31,7 +31,7 @@ jobs:
       - name: Checkout develop branch
         run: |
           git fetch origin develop
-          git checkout origin/develop -b develop
+          git checkout origin/develop
 
       - name: Run tests on develop
         run: npx vitest --coverage
