@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { getCommittedFiles } from '../helpers/git';
+import { getPushedFiles } from '../helpers/git';
 
 interface CoverageDetails {
   total: number;
@@ -27,7 +27,7 @@ const SKIP_UNCHANGED_COVERAGE = true;
 
 let coverageDecreased = false;
 
-function main() {
+async function main() {
   const baseCoveragePath = path.join('coverage-develop', 'coverage-summary.json');
   const currentCoveragePath = path.join('coverage-current', 'coverage-summary.json');
 
@@ -46,9 +46,9 @@ function main() {
   const baseCoverage = JSON.parse(baseCoverageContent) as CoverageSummary;
   const currentCoverage = JSON.parse(currentCoverageContent) as CoverageSummary;
 
-  const committedFiles = getCommittedFiles();
-  console.log('Committed files:', committedFiles);
-  const modifiedSourceFiles = committedFiles.map(mapToSourceFile).filter((f): f is string => f !== null);
+  const pushedFiles = await getPushedFiles();
+  console.log('pushed files:', pushedFiles);
+  const modifiedSourceFiles = pushedFiles.map(mapToSourceFile).filter((f): f is string => f !== null);
 
   const resultLines: string[] = [];
   resultLines.push('## Coverage Diff Result');
