@@ -14,4 +14,8 @@ function divide(a, b) {
   return a / b;
 }
 
+function hello() {
+  console.log('Hello');
+}
+
 export { sum, multiply };
