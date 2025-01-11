@@ -17,7 +17,7 @@ interface CoverageFileData {
 }
 
 interface CoverageSummary {
-  [key: string]: CoverageFileData
+  [key: string]: CoverageFileData;
 }
 
 const SRC_PREFIX = 'project/';
@@ -36,7 +36,7 @@ function main() {
     process.exit(1);
   }
   if (!fs.existsSync(currentCoveragePath)) {
-    console.error(`current coverage file not found: ${currentCoveragePath}`);
+    console.error(`Current coverage file not found: ${currentCoveragePath}`);
     process.exit(1);
   }
 
@@ -48,15 +48,15 @@ function main() {
 
   const diffFiles = getBranchDiffFiles('develop');
 
-  const modifiedSourceFiles = diffFiles.filter((file) => file.startsWith(SRC_PREFIX) && !file.startsWith(TEST_PREFIX));
+  const modifiedSourceFiles = diffFiles.filter((file) => 
+    file.startsWith(SRC_PREFIX) && !file.startsWith(TEST_PREFIX)
+  );
 
   console.log('Filtered modified files:', modifiedSourceFiles);
 
   const resultLines: string[] = [];
   resultLines.push('## Coverage Diff Result');
   resultLines.push(`비교 기준: develop branch vs. current branch\n`);
-
-  
 
   if (modifiedSourceFiles.length > 0) {
     const result = generateCoverageDiffReport({
@@ -65,7 +65,6 @@ function main() {
       currentCoverage,
     });
     if (result.length > 0) resultLines.push(...result);
-    
   } else {
     console.log('No modified files within the target folder.');
   }
@@ -79,6 +78,7 @@ function main() {
   fs.writeFileSync('coverage-diff-result.txt', resultLines.join('\n'), 'utf-8');
 
   if (coverageDecreased) {
+    console.error('Coverage decreased. Merge is blocked.');
     process.exit(1);
   }
 }
@@ -108,7 +108,7 @@ function generateCoverageDiffReport({
 
       if (matrix) result.push(matrix);
     }
-  };
+  }
 
   if (result.length > 0) {
     result.unshift('--- | --- | --- | --- | ---');
@@ -131,7 +131,7 @@ function compareMetricForFile({
 }): string {
   const basePct = baseFileCoverage ? baseFileCoverage[metric].pct : 0;
   const currentPct = currentFileCoverage ? currentFileCoverage[metric].pct : 0;
-  
+
   let note = '✅  유지';
 
   if (currentPct < basePct) {
