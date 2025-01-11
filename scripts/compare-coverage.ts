@@ -20,6 +20,10 @@ interface CoverageSummary {
   [key: string]: CoverageFileData
 }
 
+const PROJECT_FOLDER = 'project/';
+
+let coverageDecreased = false;
+
 function main() {
   const baseCoveragePath = path.join('coverage-develop', 'coverage-summary.json');
   const currentCoveragePath = path.join('coverage-current', 'coverage-summary.json');
@@ -42,39 +46,29 @@ function main() {
   // 수정된 파일 목록 가져오기 (develop...HEAD)
   const diffFiles = getModifiedFiles();
 
-  const targetFolder = 'project/';
-  const filteredDiffFiles = diffFiles.filter((file) => file.startsWith(targetFolder));
+  
+  const filteredDiffFiles = diffFiles.filter((file) => file.startsWith(PROJECT_FOLDER));
 
   console.log('Filtered modified files:', filteredDiffFiles);
 
   // 5) 결과를 담을 배열
   const resultLines: string[] = [];
   resultLines.push('## Coverage Diff Result');
-  resultLines.push(`비교 기준: develop vs. 현재 브랜치\n`);
+  resultLines.push(`비교 기준: develop branch vs. current branch\n`);
 
-  let coverageDecreased = false;
+  
 
   if (filteredDiffFiles.length > 0) {
+    resultLines.push('파일 | develop 커버리지 | current 커버리지 | 비고');
+    resultLines.push('--- | --- | --- | ---');
 
-    for(const file of filteredDiffFiles) {
-      const baseEntryKey = Object.keys(baseCoverage).find((k) => k.endsWith(file));
-      const currentEntryKey = Object.keys(currentCoverage).find((k) => k.endsWith(file));
-
-      const baseFileCov = baseEntryKey ? baseCoverage[baseEntryKey] : null;
-      const currentFileCoverage = currentEntryKey ? currentCoverage[currentEntryKey] : null;
-
-      const baseLineCoveragePercentage = baseFileCov ? baseFileCov.lines.pct : 0;
-      const currentLineCoveragePercentage = currentFileCoverage ? currentFileCoverage.lines.pct : 0;
-
-      let line = `- **${file}**: develop=${baseLineCoveragePercentage}%, current=${currentLineCoveragePercentage}%`;
-
-      if (currentLineCoveragePercentage < baseLineCoveragePercentage) {
-        coverageDecreased = true;
-        line += `  ⚠️  커버리지 하락`;
-      }
-
-      resultLines.push(line);
-    }
+    const result = generateCoverageDiffReport({
+      fileList: filteredDiffFiles,
+      baseCoverage,
+      currentCoverage,
+    });
+    resultLines.push(...result);
+    
   } else {
     console.log('No modified files within the target folder.');
   }
@@ -91,6 +85,64 @@ function main() {
     process.exit(1);
   }
 }
+
+function generateCoverageDiffReport({
+  fileList,
+  baseCoverage,
+  currentCoverage,
+}: {
+  fileList: string[];
+  baseCoverage: CoverageSummary;
+  currentCoverage: CoverageSummary;
+}): string[] {
+  const result: string[] = [];
+  const baseCoverageKeys = Object.keys(baseCoverage);
+  const currentCoverageKeys = Object.keys(currentCoverage);
+
+  result.push('파일 | Metric | develop 커버리지 | current 커버리지 | 비고');
+  result.push('--- | --- | --- | --- | ---');
+
+  for (const file of fileList) {
+    const baseEntryKey = baseCoverageKeys.find((k) => k.endsWith(file));
+    const currentEntryKey = currentCoverageKeys.find((k) => k.endsWith(file));
+
+    const baseFileCoverage = baseEntryKey ? baseCoverage[baseEntryKey] : null;
+    const currentFileCoverage = currentEntryKey ? currentCoverage[currentEntryKey] : null;
+
+    const metrics: (keyof CoverageFileData)[] = ['lines', 'functions', 'branches', 'statements'];
+
+    for (const metric of metrics) {
+      result.push(compareMetricForFile({ file, metric, baseFileCoverage, currentFileCoverage }));
+    }
+  };
+
+  return result;
+}
+
+function compareMetricForFile({
+  file,
+  metric,
+  baseFileCoverage,
+  currentFileCoverage,
+}: {
+  file: string;
+  metric: keyof CoverageFileData;
+  baseFileCoverage: CoverageFileData | null;
+  currentFileCoverage: CoverageFileData | null;
+}): string {
+  const basePct = baseFileCoverage ? baseFileCoverage[metric].pct : 0;
+  const currentPct = currentFileCoverage ? currentFileCoverage[metric].pct : 0;
+  
+  let note = '✅  유지';
+
+  if (currentPct < basePct) {
+    coverageDecreased = true;
+    note = '⚠️  하락';
+  }
+  
+  return `${file} | ${metric} | ${basePct}% | ${currentPct}% | ${note}`;
+}
+
 
 /**
  * Git 명령어를 통해 수정된 파일 목록을 가져옵니다.
