@@ -3,30 +3,72 @@ name: Develop Coverage
 on:
   push:
     branches:
-      - develop  # develop에 푸시될 때만 동작
+      - develop 
 
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+  
 jobs:
-  coverage:
+  test-and-compare:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - name: Checkout code
+      - name: Checkout current branch
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
-      - name: Use Node.js
+      - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 18
 
       - name: Install dependencies
-        run: pnpm install
+        run: npm install
 
-      - name: Run tests with coverage
-        run: npx vitest --coverage --watch=false
+      - name: Checkout develop branch
+        run: |
+          git fetch origin develop
+          git checkout origin/develop -b develop
 
-      - name: Upload coverage artifact
-        uses: actions/upload-artifact@v3
+      - name: Run tests on develop
+        run: npx vitest --coverage
+
+      - name: Save develop coverage
+        run: |
+          mkdir -p coverage-develop
+          cp coverage/coverage-summary.json coverage-develop/coverage-summary.json
+
+      - name: Checkout current branch again
+        run: git checkout ${{ github.head_ref }}
+
+      - name: Run tests on current
+        run: npx vitest --coverage
+
+      - name: Save current coverage
+        run: |
+          mkdir -p coverage-current
+          cp coverage/coverage-summary.json coverage-current/coverage-summary.json
+
+      # 3. Compare coverage
+      - name: Install ts-node and TypeScript
+        run: npm install -D ts-node typescript
+
+      - name: Compare coverage
+        run: npx ts-node scripts/compare-all-coverage.ts
+
+      - name: Comment coverage result to PR
+        if: always()  
+        uses: actions/github-script@v6
         with:
-          name: develop-coverage-summary
-          path: coverage/coverage-summary.json
+          script: |
+            const fs = require('fs');
+            const result = fs.readFileSync('coverage-diff-result.txt', 'utf-8');
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: result,
+            });

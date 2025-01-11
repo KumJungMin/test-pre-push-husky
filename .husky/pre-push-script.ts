@@ -1,6 +1,7 @@
 import { execSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
+import { getCommittedFiles } from '../helpers/git';
 
 /** 
  * SRC_PREFIX: 소스 파일이 project/src/ 폴더에 있다면 'project/src/'로 설정
@@ -30,35 +31,6 @@ const TEST_RUN_SCRIPT = 'pnpm vitest run';
   process.exit(0);
 })();
 
-function getCommittedFiles(): string[] {
-  try {
-    const input = fs.readFileSync(0, 'utf-8');
-    const lines = input.trim().split('\n');
-
-    let committedFiles: string[] = [];
-
-    lines.forEach(line => {
-      const [_, localSha, __, remoteSha] = line.split(' ');
-
-      const isLocalBranch = remoteSha === '0000000000000000000000000000000000000000';
-      if (isLocalBranch) {
-        const listCommand = `git ls-tree -r --name-only ${localSha}`;
-        const output = execSync(listCommand, { encoding: 'utf-8' });
-        committedFiles = committedFiles.concat(output.split('\n').filter(file => file.trim() !== ''));
-      } else {
-        const diffCommand = `git diff --name-only ${remoteSha} ${localSha}`;
-        const output = execSync(diffCommand, { encoding: 'utf-8' });
-        committedFiles = committedFiles.concat(output.split('\n').filter(file => file.trim() !== ''));
-      }
-    });
-
-    const uniqueFiles = Array.from(new Set(committedFiles))
-    return uniqueFiles;
-  } catch (error) {
-    console.error('커밋한 파일을 가져오는 중 오류가 발생했습니다.');
-    process.exit(1);
-  }
-}
 
 /**
  * 테스트 파일이 존재하는지 확인하고, 존재하면 테스트를 실행합니다.

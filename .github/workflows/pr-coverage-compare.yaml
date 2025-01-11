@@ -5,9 +5,15 @@ on:
     branches:
       - develop  # base가 develop인 PR에 대해 실행
 
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+  
 jobs:
   test-and-compare:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Checkout current branch
         uses: actions/checkout@v3
@@ -20,7 +26,7 @@ jobs:
           node-version: 18
 
       - name: Install dependencies
-        run: pnpm install
+        run: npm install
 
       # 1. `develop` 브랜치의 커버리지 생성
       - name: Checkout develop branch
@@ -50,14 +56,18 @@ jobs:
 
       # 3. Compare coverage
       - name: Install ts-node and TypeScript
-        run: pnpm add -D ts-node typescript
+        run: npm install -D ts-node typescript
 
       - name: Compare coverage
-        run: npx ts-node scripts/compare-coverage.ts
-
+        run: npx ts-node scripts/compare-change-file-coverage.ts
+        env:
+          GITHUB_EVENT_BEFORE: ${{ github.event.before }}
+          GITHUB_EVENT_AFTER: ${{ github.event.after }}
+          GITHUB_SHA: ${{ github.sha }}
+        
       # 4. Comment coverage result to PR
       - name: Comment coverage result to PR
-        if: always()  # 항상 실행
+        if: always()  
         uses: actions/github-script@v6
         with:
           script: |
