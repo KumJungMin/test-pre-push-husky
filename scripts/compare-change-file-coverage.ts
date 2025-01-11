@@ -20,8 +20,8 @@ interface CoverageSummary {
   [key: string]: CoverageFileData
 }
 
-const SRC_PREFIX = 'project/';
-const TEST_PREFIX = `${SRC_PREFIX}tests/`;
+const PROJECT_PREFIX = 'project/';
+const TEST_PREFIX = `${PROJECT_PREFIX}tests/`;
 const COVERAGE_METRICS: (keyof CoverageFileData)[] = ['lines', 'functions', 'branches', 'statements'];
 const SKIP_UNCHANGED_COVERAGE = true;
 
@@ -103,9 +103,6 @@ function generateCoverageDiffReport({
     const baseFileCoverage = baseEntryKey ? baseCoverage[baseEntryKey] : null;
     const currentFileCoverage = currentEntryKey ? currentCoverage[currentEntryKey] : null;
 
-    console.log('base:', baseFileCoverage);
-    console.log('current:', currentFileCoverage);
-
     for (const metric of COVERAGE_METRICS) {
       const matrix = compareMetricForFile({ file, metric, baseFileCoverage, currentFileCoverage });
 
@@ -154,6 +151,10 @@ function compareMetricForFile({
  * @returns {string | null} 대응하는 테스트 파일 경로 또는 null
  */
 function mapToSourceFile(file: string): string | null {
+  if (!file.startsWith(PROJECT_PREFIX)) {
+    return null;
+  }
+
   const testExtensions = ['.spec.js', '.test.js', '.spec.ts', '.test.ts'];
   const isTestFile = testExtensions.some(ext => file.endsWith(ext));
 
@@ -163,10 +164,10 @@ function mapToSourceFile(file: string): string | null {
     const ext = path.extname(relativePath);
     const baseName = path.basename(relativePath, ext);
 
-    const sourceFile = path.join(SRC_PREFIX, dir, baseName + ext);
+    const sourceFile = path.join(PROJECT_PREFIX, dir, baseName + ext);
     return sourceFile;
   } else {
-    return null;
+    return file;
   }
 
 }
