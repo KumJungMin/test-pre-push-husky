@@ -18,4 +18,8 @@ function hello() {
   console.log('Hello');
 }
 
+function goodbye() {
+  console.log('Goodbye');
+}
+
 export { sum, multiply };
