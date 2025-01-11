@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import { execSync, exec } from 'child_process';
 
 export function getPushedFiles(): Promise<string[]> {
-  const baseRef = process.env.GIT_BASE_REF;
+  const baseRef = process.env.GITHUB_BASE_REF;
   const currentSha = process.env.GITHUB_SHA;
   
   if (!baseRef) {
