@@ -5,6 +5,21 @@ export function getPushedFiles(): Promise<string[]> {
   const commitBefore = process.env.GITHUB_EVENT_BEFORE;
   const commitAfter = process.env.GITHUB_SHA || process.env.GITHUB_EVENT_AFTER;
 
+  if (!commitBefore || /^0+$/.test(commitBefore)) {
+    return new Promise((resolve, reject) => {
+      const command = `git ls-files`;
+      exec(command, (error, stdout, stderr) => {
+        if (error) {
+          console.error(`Error executing git ls-files: ${stderr}`);
+          reject(error);
+          return;
+        }
+        const allFiles = stdout.trim() ? stdout.trim().split("\n") : [];
+        console.log("전체 파일 목록:", allFiles);
+        resolve(allFiles);
+      });
+    });
+  }
   return new Promise((resolve, reject) => {
     const command = `git diff --name-only ${commitBefore} ${commitAfter}`;
     exec(command, (error, stdout, stderr) => {
@@ -15,7 +30,6 @@ export function getPushedFiles(): Promise<string[]> {
       }
       const changedFiles = stdout.trim() ? stdout.trim().split("\n") : [];
       console.log("Changed files:", changedFiles);
-      
       resolve(changedFiles);
     });
   });
