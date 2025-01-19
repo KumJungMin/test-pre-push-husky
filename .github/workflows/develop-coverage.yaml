@@ -56,7 +56,11 @@ jobs:
 
       - name: Install ts-node and TypeScript
         run: npm install -D ts-node typescript
-        
+
+      - name: Compare coverage
+        run: |
+          npx ts-node scripts/compare-all-coverage.ts
+                  
       - name: Comment coverage result to PR
         if: always()  
         uses: actions/github-script@v6
