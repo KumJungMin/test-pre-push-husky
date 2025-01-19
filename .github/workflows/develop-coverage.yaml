@@ -48,15 +48,6 @@ jobs:
           mkdir -p coverage-current
           cp coverage/coverage-summary.json coverage-current/coverage-summary.json
 
-      - name: Compare coverage
-        run: |
-          npx ts-node scripts/compare-all-coverage.ts > coverage-diff-result.txt
-          if grep -q "Coverage decreased" coverage-diff-result.txt; then
-            echo "Coverage decreased, failing workflow."
-            exit 1
-          else
-            echo "Coverage is stable or improved."
-          fi
 
       - name: Comment coverage result to PR
         if: always()  
@@ -72,3 +63,9 @@ jobs:
               repo: context.repo.repo,
               body: result,
             });
+            if grep -q "Coverage decreased" coverage-diff-result.txt; then
+              echo "Coverage decreased, failing workflow."
+              exit 1
+            else
+              echo "Coverage is stable or improved."
+            fi
