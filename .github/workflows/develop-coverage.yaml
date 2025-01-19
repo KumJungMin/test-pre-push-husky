@@ -42,7 +42,11 @@ jobs:
           cp coverage/coverage-summary.json coverage-develop/coverage-summary.json
 
       - name: Checkout current branch again
-        run: git checkout ${{ github.head_ref }}  
+        run: |
+          git checkout ${{ github.ref_name }}  
+          echo "github.head_ref: ${{ github.head_ref }}"
+          echo "github.ref_name: ${{ github.ref_name }}"
+          echo "Using branch: $([[ -n "${{ github.head_ref }}" ]] && echo "${{ github.head_ref }}" || echo "${{ github.ref_name }}")"
 
       - name: Run tests on current
         run: npx vitest --coverage
