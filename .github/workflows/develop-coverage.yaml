@@ -43,11 +43,8 @@ jobs:
 
       - name: Checkout current branch again
         run: |
-          git checkout ${{ github.ref_name }}  
-          echo "github.head_ref: ${{ github.head_ref }}"
-          echo "github.ref_name: ${{ github.ref_name }}"
-          echo "Using branch: $([[ -n "${{ github.head_ref }}" ]] && echo "${{ github.head_ref }}" || echo "${{ github.ref_name }}")"
-
+          echo "github.event.pull_request.head.ref: ${{ github.event.pull_request.head.ref }}"
+          git checkout ${{ github.event.pull_request.head.ref }}
       - name: Run tests on current
         run: npx vitest --coverage
 
