@@ -122,12 +122,9 @@ function getSourceFileKey(coverageKeys: string[], file: string): string {
   if (isTestFile) {
     const fileDir = path.dirname(file);
     const fileBase = path.basename(file, path.extname(file)).split('.')[0];
-    const formattedFile = path.join(fileDir, fileBase);
+    const formattedFile = path.join(fileDir, fileBase).replace(TEST_PREFIX, SRC_PREFIX);
 
     const idx = coverageKeys.findIndex((k) => k.includes(formattedFile));
-
-
-    console.log('formattedFile:', coverageKeys, formattedFile, idx);
 
     if (idx > -1) return coverageKeys[idx];  
     else return file;
