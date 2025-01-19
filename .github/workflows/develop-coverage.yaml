@@ -48,15 +48,26 @@ jobs:
           mkdir -p coverage-current
           cp coverage/coverage-summary.json coverage-current/coverage-summary.json
 
+      - name: Install ts-node and TypeScript
+        run: npm install -D ts-node typescript
 
+      - name: Compare coverage
+        run: |
+          npx ts-node scripts/compare-all-coverage.ts > coverage-diff-result.txt
+          if grep -q "Coverage decreased" coverage-diff-result.txt; then
+            echo "Coverage decreased, failing workflow."
+            exit 1
+          else
+            echo "Coverage is stable or improved."
+          fi
+                  
       - name: Comment coverage result to PR
         if: always()  
         uses: actions/github-script@v6
         with:
           script: |
             const fs = require('fs');
-            const resultPath = 'coverage-diff-result.txt';
-            const result = fs.existsSync(resultPath) ? fs.readFileSync(resultPath, 'utf-8') : 'No coverage comparison result found.';
+            const result = fs.readFileSync('coverage-diff-result.txt', 'utf-8');
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
