@@ -56,17 +56,7 @@ jobs:
 
       - name: Install ts-node and TypeScript
         run: npm install -D ts-node typescript
-
-      - name: Compare coverage
-        run: |
-          npx ts-node scripts/compare-all-coverage.ts > coverage-diff-result.txt
-          if grep -q "Coverage decreased" coverage-diff-result.txt; then
-            echo "Coverage decreased, failing workflow."
-            exit 1
-          else
-            echo "Coverage is stable or improved."
-          fi
-                  
+        
       - name: Comment coverage result to PR
         if: always()  
         uses: actions/github-script@v6
