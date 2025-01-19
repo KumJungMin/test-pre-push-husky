@@ -22,8 +22,4 @@ function goodbye() {
   console.log('Goodbye');
 }
 
-function greet() {
-  console.log('Greetings');
-}
-
 export { sum, multiply };
