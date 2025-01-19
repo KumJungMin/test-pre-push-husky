@@ -118,9 +118,17 @@ function generateCoverageDiffReport({
 
 function getSourceFileKey(coverageKeys: string[], file: string): string {
   const isTestFile = file.startsWith(TEST_PREFIX);
+  console.log('isTestFile:', isTestFile);
 
   if (isTestFile) {
-    return coverageKeys.find((k) => k.split('.')[0].endsWith(file.split('.')[0])) || file;
+    const idx = coverageKeys.findIndex((k) => k.split('.')[0].endsWith(file.split('.')[0]));
+    console.log('idx:', idx);
+    // return coverageKeys.findIndex
+
+    console.log('coverageKeys[idx]:', coverageKeys[idx]);
+    return coverageKeys[idx];
+
+    // ((k) => k.split('.')[0].endsWith(file.split('.')[0])) || file;
   }
   else return file;
 }
