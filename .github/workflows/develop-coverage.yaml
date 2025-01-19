@@ -42,9 +42,7 @@ jobs:
           cp coverage/coverage-summary.json coverage-develop/coverage-summary.json
 
       - name: Checkout current branch again
-        run: |
-          echo "github.event.pull_request.head.ref: ${{ github.event.pull_request.head.ref }}"
-          git checkout ${{ github.event.pull_request.head.ref }}
+        run: git checkout ${{ github.head_ref }}
       - name: Run tests on current
         run: npx vitest --coverage
 
