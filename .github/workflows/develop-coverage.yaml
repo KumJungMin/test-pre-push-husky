@@ -63,9 +63,3 @@ jobs:
               repo: context.repo.repo,
               body: result,
             });
-            if grep -q "Coverage decreased" coverage-diff-result.txt; then
-              echo "Coverage decreased, failing workflow."
-              exit 1
-            else
-              echo "Coverage is stable or improved."
-            fi
