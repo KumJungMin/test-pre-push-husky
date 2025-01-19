@@ -1,9 +1,8 @@
 name: Develop Coverage
 
 on:
-  push:
-    branches:
-      - develop 
+  pull_request_review:
+    types: [submitted]
 
 permissions:
   contents: read
@@ -12,6 +11,7 @@ permissions:
   
 jobs:
   test-and-compare:
+    if: github.base_ref == 'develop' && github.event.review.state == 'approved'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -41,23 +41,22 @@ jobs:
           mkdir -p coverage-develop
           cp coverage/coverage-summary.json coverage-develop/coverage-summary.json
 
-      - name: Checkout current branch again
-        run: git checkout ${{ github.head_ref }}
-
-      - name: Run tests on current
-        run: npx vitest --coverage
-
-      - name: Save current coverage
+      - name: Checkout current branch again and run tests
         run: |
+          git checkout ${{ github.head_ref }}
+          npx vitest --coverage
           mkdir -p coverage-current
           cp coverage/coverage-summary.json coverage-current/coverage-summary.json
 
-      # 3. Compare coverage
-      - name: Install ts-node and TypeScript
-        run: npm install -D ts-node typescript
-
       - name: Compare coverage
-        run: npx ts-node scripts/compare-all-coverage.ts
+        run: |
+          npx ts-node scripts/compare-all-coverage.ts > coverage-diff-result.txt
+          if grep -q "Coverage decreased" coverage-diff-result.txt; then
+            echo "Coverage decreased, failing workflow."
+            exit 1
+          else
+            echo "Coverage is stable or improved."
+          fi
 
       - name: Comment coverage result to PR
         if: always()  
@@ -65,7 +64,8 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const result = fs.readFileSync('coverage-diff-result.txt', 'utf-8');
+            const resultPath = 'coverage-diff-result.txt';
+            const result = fs.existsSync(resultPath) ? fs.readFileSync(resultPath, 'utf-8') : 'No coverage comparison result found.';
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
