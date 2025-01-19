@@ -96,8 +96,6 @@ function generateCoverageDiffReport({
   for (const file of fileList) {
     const sourceKey = getSourceFileKey(baseCoverageKeys, file);
 
-    console.log('sourceKey:', sourceKey);
-
     const baseFileCoverage = sourceKey ? baseCoverage[sourceKey] || null : null;
     const currentFileCoverage = sourceKey ? currentCoverage[sourceKey]  || null : null;
 
@@ -147,7 +145,8 @@ function compareMetricForFile({
 }): string {
   const basePct = baseFileCoverage ? baseFileCoverage[metric].pct : 0;
   const currentPct = currentFileCoverage ? currentFileCoverage[metric].pct : 0;
-
+  const formattedFile = file.split(SRC_PREFIX)[1];
+  
   let note = '✅  유지';
 
   if (currentPct < basePct) {
@@ -156,7 +155,7 @@ function compareMetricForFile({
   } else if (SKIP_UNCHANGED_COVERAGE) {
     return '';
   }
-  return `${file} | ${metric} | ${basePct}% | ${currentPct}% | ${note}`;
+  return `${formattedFile} | ${metric} | ${basePct}% | ${currentPct}% | ${note}`;
 }
 
 main();
