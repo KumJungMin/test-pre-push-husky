@@ -48,19 +48,17 @@ function main() {
 
   const diffFiles = getBranchDiffFiles('develop');
 
-  const modifiedSourceFiles = diffFiles.filter((file) => 
-    file.startsWith(SRC_PREFIX) && !file.startsWith(TEST_PREFIX)
-  );
+  const modifiedFiles = diffFiles.filter((file) => file.startsWith(SRC_PREFIX));
 
-  console.log('Filtered modified files:', modifiedSourceFiles);
+  console.log('Filtered modified files:', modifiedFiles);
 
   const resultLines: string[] = [];
   resultLines.push('## Coverage Diff Result');
   resultLines.push(`비교 기준: develop branch vs. current branch\n`);
 
-  if (modifiedSourceFiles.length > 0) {
+  if (modifiedFiles.length > 0) {
     const result = generateCoverageDiffReport({
-      fileList: modifiedSourceFiles,
+      fileList: modifiedFiles,
       baseCoverage,
       currentCoverage,
     });
@@ -94,17 +92,17 @@ function generateCoverageDiffReport({
 }): string[] {
   const result: string[] = [];
   const baseCoverageKeys = Object.keys(baseCoverage);
-  const currentCoverageKeys = Object.keys(currentCoverage);
 
   for (const file of fileList) {
-    const baseEntryKey = baseCoverageKeys.find((k) => k.endsWith(file));
-    const currentEntryKey = currentCoverageKeys.find((k) => k.endsWith(file));
+    const sourceKey = getSourceFileKey(baseCoverageKeys, file);
 
-    const baseFileCoverage = baseEntryKey ? baseCoverage[baseEntryKey] : null;
-    const currentFileCoverage = currentEntryKey ? currentCoverage[currentEntryKey] : null;
+    console.log('sourceKey:', sourceKey);
+
+    const baseFileCoverage = sourceKey ? baseCoverage[sourceKey] || null : null;
+    const currentFileCoverage = sourceKey ? currentCoverage[sourceKey]  || null : null;
 
     for (const metric of COVERAGE_METRICS) {
-      const matrix = compareMetricForFile({ file, metric, baseFileCoverage, currentFileCoverage });
+      const matrix = compareMetricForFile({ file: sourceKey, metric, baseFileCoverage, currentFileCoverage });
 
       if (matrix) result.push(matrix);
     }
@@ -116,6 +114,15 @@ function generateCoverageDiffReport({
   }
 
   return result;
+}
+
+function getSourceFileKey(coverageKeys: string[], file: string): string {
+  const isTestFile = file.startsWith(TEST_PREFIX);
+
+  if (isTestFile) {
+    return coverageKeys.find((k) => k.split('.')[0].endsWith(file.split('.')[0])) || file;
+  }
+  else return file;
 }
 
 function compareMetricForFile({
