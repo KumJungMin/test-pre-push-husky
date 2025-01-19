@@ -28,26 +28,21 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Checkout develop branch
+      - name: Checkout develop branch and run tests on develop
         run: |
           git fetch origin develop
           git checkout origin/develop -b develop
-
-      - name: Run tests on develop
-        run: npx vitest --coverage
-
-      - name: Save develop coverage
-        run: |
+          npx vitest --coverage
           mkdir -p coverage-develop
           cp coverage/coverage-summary.json coverage-develop/coverage-summary.json
 
-      - name: Checkout current branch again
-        run: git checkout ${{ github.head_ref }}
-      - name: Run tests on current
-        run: npx vitest --coverage
+      - name: Stash changes before switching back to PR branch
+        run: git stash --include-untracked
 
-      - name: Save current coverage
+      - name: Checkout current branch again and run tests on current
         run: |
+          git checkout -f ${{ github.head_ref }}
+          npx vitest --coverage
           mkdir -p coverage-current
           cp coverage/coverage-summary.json coverage-current/coverage-summary.json
 
