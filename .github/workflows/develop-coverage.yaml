@@ -43,8 +43,8 @@ jobs:
 
       - name: Checkout current branch again
         run: |
-          git checkout ${{ github.head_ref }}
-          echo "Checked out branch ${{ github.head_ref }}"
+          git checkout ${{ github.event.pull_request.base.ref  }}
+          echo "Checked out branch ${{ github.event.pull_request.base.ref  }}"
 
       - name: Run tests on current
         run: npx vitest --coverage
