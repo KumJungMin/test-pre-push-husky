@@ -34,4 +34,4 @@ function sayonara() {
   console.log('Sayonara');
 }
 
-export { sum, multiply };
+export { sum, multiply, sayonara };
