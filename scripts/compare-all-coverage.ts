@@ -75,7 +75,8 @@ function loadCoverageFile(filePath: string): CoverageSummary {
   const parsedContent = JSON.parse(content);
 
   return Object.keys(parsedContent).reduce((acc, key) => {
-    acc[key.split(SRC_PREFIX)[1]] = parsedContent[key];
+    const newKey = `${SRC_PREFIX}${key.split(SRC_PREFIX)[1]}`;
+    acc[newKey] = parsedContent[key];
     return acc;
   }, {} as CoverageSummary);
 }
