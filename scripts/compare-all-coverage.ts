@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { getBranchDiffFiles } from '../helpers/git';
+import { getBranchDiffFiles } from '../project/helpers/git';
 
 interface CoverageDetails {
   total: number;
@@ -72,7 +72,12 @@ function loadCoverageFile(filePath: string): CoverageSummary {
     process.exit(1);
   }
   const content = fs.readFileSync(filePath, 'utf-8');
-  return JSON.parse(content) as CoverageSummary;
+  const parsedContent = JSON.parse(content);
+
+  return Object.keys(parsedContent).reduce((acc, key) => {
+    acc[key.split(SRC_PREFIX)[1]] = parsedContent[key];
+    return acc;
+  }, {} as CoverageSummary);
 }
 
 /** 

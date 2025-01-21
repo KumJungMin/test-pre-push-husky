@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { getPushedFiles } from '../helpers/git';
+import { getPushedFiles } from '../project/helpers/git';
 
 interface CoverageDetails {
   total: number;
