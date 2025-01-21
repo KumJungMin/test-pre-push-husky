@@ -28,16 +28,18 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Checkout develop branch
+      # --- Helper function: Run tests and save coverage ---
+      # 해당 쉘 스크립트 블록은 지정한 브랜치에서 테스트 실행 및 커버리지 파일 저장을 담당합니다.
+      # 인자로 브랜치 이름, 체크아웃 명령어, 저장할 디렉터리명을 받습니다.
+      - name: Run tests and save coverage on develop branch
+        id: develop_coverage
         run: |
+          # checkout develop 브랜치
           git fetch origin develop
           git checkout origin/develop -b develop
-
-      - name: Run tests on develop
-        run: npx vitest --coverage
-
-      - name: Save develop coverage
-        run: |
+          # 테스트 실행 및 커버리지 생성
+          npx vitest --coverage
+          # 커버리지 파일 저장 (디렉터리 생성 및 복사)
           mkdir -p coverage-develop
           cp coverage/coverage-summary.json coverage-develop/coverage-summary.json
 
@@ -46,11 +48,9 @@ jobs:
           git checkout -f ${{ github.event.pull_request.head.ref }}
           echo "Checked out branch ${{ github.event.pull_request.head.ref }}"
 
-      - name: Run tests on current
-        run: npx vitest --coverage
-
-      - name: Save current coverage
+      - name: Run tests and save coverage on current branch
         run: |
+          npx vitest --coverage
           mkdir -p coverage-current
           cp coverage/coverage-summary.json coverage-current/coverage-summary.json
 
@@ -58,8 +58,7 @@ jobs:
         run: npm install -D ts-node typescript
 
       - name: Compare coverage
-        run: |
-          npx ts-node scripts/compare-all-coverage.ts
+        run: npx ts-node scripts/compare-all-coverage.ts
                   
       - name: Comment coverage result to PR
         if: always()  
