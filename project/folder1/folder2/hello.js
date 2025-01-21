@@ -30,4 +30,12 @@ function farewell() {
   console.log('Farewell');
 }
 
-export { sum, multiply };
+function sayonara() {
+  console.log('Sayonara');
+}
+
+function greet2() {
+  console.log('Hello');
+}
+
+export { sum, multiply, sayonara };

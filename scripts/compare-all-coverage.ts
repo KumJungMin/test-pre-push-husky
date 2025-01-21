@@ -105,9 +105,11 @@ function generateCoverageDiffReport(params: {
   const { fileList, baseCoverage, currentCoverage } = params;
   const result: string[] = [];
   const coverageKeys = Object.keys(baseCoverage);
+  const uniqueSourceFilePaths = new Set(
+    fileList.map((file) => getSourceFilePath(coverageKeys, file))
+  );
 
-  for (const file of fileList) {
-    const sourceFilePath = getSourceFilePath(coverageKeys, file);
+  for (const sourceFilePath of uniqueSourceFilePaths) {
     const fileReport = compareCoverageMetricsForFile(sourceFilePath, baseCoverage, currentCoverage);
     result.push(...fileReport);
   }
