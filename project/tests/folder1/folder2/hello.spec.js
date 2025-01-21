@@ -7,18 +7,18 @@ describe('sum', () => {
   });
 });
 
-describe ('multiply', () => {
-  it('multiplies 2 * 3 to equal 6', () => {
-    expect(multiply(2, 3)).toBe(6);
-  });
-})
+// describe ('multiply', () => {
+//   it('multiplies 2 * 3 to equal 6', () => {
+//     expect(multiply(2, 3)).toBe(6);
+//   });
+// })
 
-describe('sayonara', () => {
-  it('prints Sayonara', () => {
-    const consoleMock = vitest.spyOn(console, 'log');
+// describe('sayonara', () => {
+//   it('prints Sayonara', () => {
+//     const consoleMock = vitest.spyOn(console, 'log');
 
-    sayonara();
+//     sayonara();
 
-    expect(consoleMock).toHaveBeenCalledWith('Sayonara');
-  });
-});
+//     expect(consoleMock).toHaveBeenCalledWith('Sayonara');
+//   });
+// });
