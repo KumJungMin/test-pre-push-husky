@@ -108,8 +108,11 @@ function generateCoverageDiffReport(params: {
 
   for (const file of fileList) {
     const sourceFilePath = getSourceFilePath(coverageKeys, file);
-    const fileReport = compareCoverageMetricsForFile(sourceFilePath, baseCoverage, currentCoverage);
-    result.push(...fileReport);
+    
+    if (!result.includes(sourceFilePath))  {
+      const fileReport = compareCoverageMetricsForFile(sourceFilePath, baseCoverage, currentCoverage);
+      result.push(...fileReport);
+    }
   }
   if (result.length > 0) {
     result.unshift('파일 | Metric | develop 커버리지 | current 커버리지 | 비고');
