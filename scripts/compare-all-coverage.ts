@@ -88,9 +88,13 @@ function compareCoverageMetricsForFile(
   const currentData = currentCoverage[fileKey] || null;
   const formattedFile = fileKey.split(SRC_PREFIX)[1];
 
+  console.log('Comparing coverage for:', formattedFile, baseData, currentData);
+
   for (const metric of COVERAGE_METRICS) {
     const basePct = baseData ? baseData[metric].pct : 0;
     const currentPct = currentData ? currentData[metric].pct : 0;
+
+    console.log('Comparing metric:', metric, basePct, currentPct);
     
     if (SKIP_UNCHANGED_COVERAGE && currentPct >= basePct) {
       continue;
@@ -98,6 +102,7 @@ function compareCoverageMetricsForFile(
 
     const note = currentPct < basePct ? '⚠️  하락' : '✅  유지';
     if (currentPct < basePct) coverageDecreased = true;
+
     result.push(`${formattedFile} | ${metric} | ${basePct}% | ${currentPct}% | ${note}`);
   }
   return result;
