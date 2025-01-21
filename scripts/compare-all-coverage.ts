@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { getBranchDiffFiles } from '../helpers/git';
+import { getBranchDiffFiles } from '../project/helpers/git';
 
 interface CoverageDetails {
   total: number;
@@ -72,35 +72,19 @@ function loadCoverageFile(filePath: string): CoverageSummary {
     process.exit(1);
   }
   const content = fs.readFileSync(filePath, 'utf-8');
-  return JSON.parse(content) as CoverageSummary;
+  const parsedContent = JSON.parse(content);
+
+  return Object.keys(parsedContent).reduce((acc, key) => {
+    acc[getFilePath(key)] = parsedContent[key];
+    return acc;
+  }, {} as CoverageSummary);
 }
 
 /** 
- * 단일 파일에 대해 각 메트릭의 커버리지 차이를 비교하고 리포트 라인 배열을 반환하는 함수 
+ * 커버리지 파일 경로를 프로젝트 소스 경로로 변환하는 함수 
  */
-function compareCoverageMetricsForFile(
-  fileKey: string,
-  baseCoverage: CoverageSummary,
-  currentCoverage: CoverageSummary
-): string[] {
-  const result: string[] = [];
-  const baseData = baseCoverage[fileKey] || null;
-  const currentData = currentCoverage[fileKey] || null;
-  const formattedFile = fileKey.split(SRC_PREFIX)[1];
-
-  for (const metric of COVERAGE_METRICS) {
-    const basePct = baseData ? baseData[metric].pct : 0;
-    const currentPct = currentData ? currentData[metric].pct : 0;
-    
-    if (SKIP_UNCHANGED_COVERAGE && currentPct >= basePct) {
-      continue;
-    }
-
-    const note = currentPct < basePct ? '⚠️  하락' : '✅  유지';
-    if (currentPct < basePct) coverageDecreased = true;
-    result.push(`${formattedFile} | ${metric} | ${basePct}% | ${currentPct}% | ${note}`);
-  }
-  return result;
+function getFilePath(filePath: string) {
+  return `${SRC_PREFIX}${filePath.split(SRC_PREFIX)[1]}`;
 }
 
 /** 
@@ -116,8 +100,8 @@ function generateCoverageDiffReport(params: {
   const coverageKeys = Object.keys(baseCoverage);
 
   for (const file of fileList) {
-    const sourceKey = getSourceFileKey(coverageKeys, file);
-    const fileReport = compareCoverageMetricsForFile(sourceKey, baseCoverage, currentCoverage);
+    const sourceFilePath = getSourceFilePath(coverageKeys, file);
+    const fileReport = compareCoverageMetricsForFile(sourceFilePath, baseCoverage, currentCoverage);
     result.push(...fileReport);
   }
   if (result.length > 0) {
@@ -129,9 +113,9 @@ function generateCoverageDiffReport(params: {
 
 
 /** 
- * 테스트 파일의 경로를 소스 파일 경로로 변환하여 coverage 파일의 키와 매칭을 시도하는 함수 
+ * 테스트 파일의 경로를 소스 파일 경로로 변환하는 함수
  */
-function getSourceFileKey(coverageKeys: string[], file: string): string {
+function getSourceFilePath(coverageKeys: string[], file: string): string {
   if (file.startsWith(TEST_PREFIX)) {
     const fileDir = path.dirname(file);
     const fileBase = path.basename(file, path.extname(file)).split('.')[0];
@@ -141,6 +125,35 @@ function getSourceFileKey(coverageKeys: string[], file: string): string {
     return idx > -1 ? coverageKeys[idx] : file;
   }
   return file;
+}
+
+
+/** 
+ * 단일 파일에 대해 각 메트릭의 커버리지 차이를 비교하고 리포트 라인 배열을 반환하는 함수 
+ */
+function compareCoverageMetricsForFile(
+  filePath: string,
+  baseCoverage: CoverageSummary,
+  currentCoverage: CoverageSummary
+): string[] {
+  const result: string[] = [];
+  const baseData = baseCoverage[filePath] || null;
+  const currentData = currentCoverage[filePath] || null;
+
+  for (const metric of COVERAGE_METRICS) {
+    const basePct = baseData ? baseData[metric].pct : 0;
+    const currentPct = currentData ? currentData[metric].pct : 0;
+    
+    if (SKIP_UNCHANGED_COVERAGE && currentPct >= basePct) {
+      continue;
+    }
+
+    const note = currentPct < basePct ? '⚠️  하락' : '✅  유지';
+    if (currentPct < basePct) coverageDecreased = true;
+
+    result.push(`${filePath} | ${metric} | ${basePct}% | ${currentPct}% | ${note}`);
+  }
+  return result;
 }
 
 
