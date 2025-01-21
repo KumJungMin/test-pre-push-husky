@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { getBranchDiffFiles } from '../project/helpers/git';
+import { getBranchDiffFiles } from './git-file-tracker';
 
 interface CoverageDetails {
   total: number;
@@ -20,6 +20,13 @@ interface CoverageSummary {
   [key: string]: CoverageFileData;
 }
 
+/**
+ * 프로젝트 루트 경로를 나타내는 상수
+ * SRC_PREFIX: 소스 파일 경로의 접두어
+ * TEST_PREFIX: 테스트 파일 경로의 접두어
+ * COVERAGE_METRICS: 비교할 커버리지 메트릭 목록
+ * SKIP_UNCHANGED_COVERAGE: 커버리지가 하락하지 않은 파일은 리포트에서 제외할지 여부
+ */
 const SRC_PREFIX = 'project/';
 const TEST_PREFIX = `${SRC_PREFIX}tests/`;
 const COVERAGE_METRICS: (keyof CoverageFileData)[] = ['lines', 'functions', 'branches', 'statements'];
