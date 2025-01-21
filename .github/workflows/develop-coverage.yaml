@@ -1,4 +1,4 @@
-name: Develop Coverage
+name: Coverage Checker on Develop
 
 on:
   pull_request_review:
